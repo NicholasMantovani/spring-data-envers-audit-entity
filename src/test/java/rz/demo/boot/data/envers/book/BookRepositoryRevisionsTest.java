@@ -36,12 +36,14 @@ class BookRepositoryRevisionsTest {
 
     private Book book;
 
+    private final String author = "Rudyard Kipling";
+
     @BeforeEach
     public void save() {
         repository.deleteAll();
 
         book = repository.save(
-                Book.builder().author("Rudyard Kipling").title("Jungle Book").build()
+                Book.builder().author(author).title("Jungle Book").build()
         );
         repository.save(book);
     }
@@ -80,7 +82,7 @@ class BookRepositoryRevisionsTest {
 
         String userModified = ((AuditRevisionEntity) revision.getContent().get(0).getMetadata().getDelegate()).getUsername();
 
-
+        assertThat(userModified).isEqualTo(author);
 //        List results = auditReader.createQuery()
 //                .forRevisionsOfEntityWithChanges(Book.class, false)
 //                .add(AuditEntity.property("author").eq(book.getAuthor()))
