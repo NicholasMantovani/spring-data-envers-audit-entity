@@ -1,8 +1,11 @@
 package rz.demo.boot.data.envers.book;
 
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.hibernate.envers.Audited;
-import rz.demo.boot.data.envers.audit.AuditEnabledEntity;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -17,10 +20,9 @@ import javax.validation.constraints.NotNull;
 @Entity
 @Audited
 @Builder
-@EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class Book extends AuditEnabledEntity {
+public class Book {
 
     @Id
     @GeneratedValue
