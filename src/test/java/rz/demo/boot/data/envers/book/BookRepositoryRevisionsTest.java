@@ -1,5 +1,9 @@
 package rz.demo.boot.data.envers.book;
 
+import org.hibernate.envers.AuditReader;
+import org.hibernate.envers.AuditReaderFactory;
+import org.hibernate.envers.query.AuditEntity;
+import org.hibernate.envers.query.AuditQuery;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,7 +13,11 @@ import org.springframework.data.history.Revision;
 import org.springframework.data.history.Revisions;
 import rz.demo.boot.data.envers.audit.AuditRevisionEntity;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.PersistenceContextType;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -23,6 +31,10 @@ class BookRepositoryRevisionsTest {
     @Autowired
     private BookRepository repository;
 
+    @PersistenceContext(type = PersistenceContextType.EXTENDED)
+    private EntityManager entityManager;
+
+
     private Book book;
 
     @BeforeEach
@@ -32,6 +44,7 @@ class BookRepositoryRevisionsTest {
         book = repository.save(
                 Book.builder().author("Rudyard Kipling").title("Jungle Book").build()
         );
+        repository.save(book);
     }
 
     @Test
@@ -54,12 +67,28 @@ class BookRepositoryRevisionsTest {
     }
 
     @Test
+//    @Transactional(propagation = Propagation.NEVER)
     void updateIncreasesRevisionNumber() {
         book.setTitle("If");
 
-        repository.save(book);
+//        entityManager.getTransaction().begin();
+        repository.findRevisions(book.getId());
 
         Optional<Revision<Integer, Book>> revision = repository.findLastChangeRevision(book.getId());
+
+        AuditReader auditReader = AuditReaderFactory.get(entityManager);
+
+
+//        List results = auditReader.createQuery()
+//                .forRevisionsOfEntityWithChanges(Book.class, false)
+//                .add(AuditEntity.property("author").eq(book.getAuthor()))
+//                .getResultList();
+
+        AuditQuery q = auditReader.createQuery().forRevisionsOfEntity(Book.class, false, true);
+        q.add(AuditEntity.property("author").eq(book.getAuthor()));
+        List<Book> audit = q.getResultList();
+//        entityManager.getTransaction().commit();
+//        results.isEmpty();
 
         assertThat(revision)
                 .isPresent()
