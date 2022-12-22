@@ -2,6 +2,7 @@ package rz.demo.boot.data.envers.book;
 
 import org.hibernate.envers.AuditReader;
 import org.hibernate.envers.AuditReaderFactory;
+import org.hibernate.envers.RevisionType;
 import org.hibernate.envers.query.AuditEntity;
 import org.hibernate.envers.query.AuditQuery;
 import org.junit.jupiter.api.BeforeEach;
@@ -16,6 +17,8 @@ import rz.demo.boot.data.envers.audit.AuditRevisionEntity;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.PersistenceContextType;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Iterator;
 import java.util.List;
 
@@ -90,7 +93,13 @@ class BookRepositoryRevisionsTest {
 
         AuditQuery q = auditReader.createQuery().forRevisionsOfEntity(Book.class, false, true);
         q.add(AuditEntity.property("author").eq(book.getAuthor()));
-        List<Book> audit = q.getResultList();
+        List<Object[]> audit = q.getResultList();
+       List<RevisionDto<Book>> revisionDtos =  audit.stream().map(objects -> new RevisionDto<>((Book) objects[0], (AuditRevisionEntity) objects[1], (RevisionType) objects[2])).toList();
+
+
+//        objList.forEach(o -> {
+//            Object[] objArray = (Object[]) o;  )});
+//        Object[] objArray = (Object[]) objList.get(0);
 //        entityManager.getTransaction().commit();
 //        results.isEmpty();
 
@@ -104,6 +113,10 @@ class BookRepositoryRevisionsTest {
 //                                .extracting(Book::getTitle)
 //                                .isEqualTo("If")
 //                );
+        List<Object> revisionsTimestamp = repository.getRevisions();
+        repository.deleteRevisions(Instant.now().minus(30, ChronoUnit.DAYS).toEpochMilli());
+        List<Object> revisionsTimestampAfterDelete = repository.getRevisions();
+        String.valueOf(RevisionType.ADD);
     }
 
     @Test
